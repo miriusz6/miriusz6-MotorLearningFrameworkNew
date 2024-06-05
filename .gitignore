@@ -1,5 +1,3 @@
-
-/Assets
 /Library
 /ProjectSettings
 /obj/Debug
@@ -13,3 +11,8 @@
 /obj
 /UserSettings
 UserSettings/Layouts/default-2022.dwlt
+/Assets/*
+!/Assets/Scrpits
+/Assets/Oculus
+/Assets/TextMesh Pro
+/Assets/Yughues Fabric Materials
