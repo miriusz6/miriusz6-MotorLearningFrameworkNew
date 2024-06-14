@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
+using UnityEditor;
+
+
 
 public class Experiment : MonoBehaviour
 {
@@ -51,7 +54,14 @@ public class Experiment : MonoBehaviour
 
     private bool table_calibrated = false;
 
-    
+    // define void function variable
+    private delegate void FixedUpdateRoutine();
+    FixedUpdateRoutine OnFixedUpdate = () => { };
+
+    private string logPath = "";
+    private string log = "";
+
+
 
 
     // private Text display;
@@ -70,19 +80,67 @@ public class Experiment : MonoBehaviour
 
     void Start()
     {
+        
 
         Debug.Log("STARTED!: ");
         createDefaultSetting();
         createCheckpoints();
         InitCalibration();
         optimalPath = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        string curr_dir = Application.persistentDataPath;
+        string log_folder = "ExperimentLogs";
+        string filenameBase = "experiment_log_";
+
+        if (!System.IO.Directory.Exists(curr_dir + "/" + log_folder))
+        {
+            System.IO.Directory.CreateDirectory(curr_dir + "/" + log_folder);
+        }
+
+
+        logPath = Application.persistentDataPath + "/" + log_folder + "/" + filenameBase + System.DateTime.Now.ToString("ddmmyyyy-HHmmss") + ".csv";
+        Debug.Log("Log path: " + logPath);
+
+        
+        
+
         //if ( settings.Length < 1)
         //{
         //    Debug.Log("There must be at least 1 valid setting ! Shutting down.");
         //}
 
+
     }
 
+    void flushLog()
+    {
+        System.IO.File.AppendAllText(logPath, log);
+        log = "";
+        Debug.Log("Log flushed");
+    }
+
+
+    void logPoint()
+    {
+        string setID = currentSetting.Id.ToString();
+        string trialNumb = (currentSetting.TrialsCount - currentSetting.TrialsLeft).ToString();
+        string x = currentSetting.Cone.transform.position.x.ToString();
+        string y = currentSetting.Cone.transform.position.y.ToString();
+        string z = currentSetting.Cone.transform.position.z.ToString();
+        string time = Time.time.ToString();
+        log += (setID 
+            + "," + trialNumb 
+            + "," + time 
+            + "," + x
+            + "," + y
+            + "," + z
+            + "\n");
+    }
+
+
+    private void FixedUpdate()
+    {
+        OnFixedUpdate();
+    }
 
     void createCheckpoints()
     {
@@ -168,6 +226,23 @@ public class Experiment : MonoBehaviour
         Debug.Log("Calibrated");
     }
 
+    void initLog()
+    {
+        log += "SettingID,TrialNumber,Time,X,Y,Z\n";
+        string start_x = startPoint.transform.position.x.ToString();
+        string start_y = startPoint.transform.position.y.ToString();
+        string start_z = startPoint.transform.position.z.ToString();
+
+        log += "-1, 0, 0," + start_x + "," + start_y + "," + start_z +"\n";
+
+        string end_x = endPoint.transform.position.x.ToString();
+        string end_y = endPoint.transform.position.y.ToString();
+        string end_z = endPoint.transform.position.z.ToString();
+
+        log += "-2, 0, 0," + end_x + "," + end_y+ "," + end_z + "\n";
+
+    }
+
 
     void trySwitchState()
     {
@@ -176,6 +251,7 @@ public class Experiment : MonoBehaviour
             case State.Calibration:
                 if (table_calibrated && IsPressed(nextButton) && IsConeInPosition(startPointPos)) 
                 {
+                    initLog();
                     createCustomSettings();
                     activeState = State.Comeback;
                 }
@@ -299,8 +375,15 @@ public class Experiment : MonoBehaviour
 
    
 
-    void StartLogging() { }
-    void StopLogging() { }
+    void StartLogging() {
+        OnFixedUpdate = logPoint;
+        Debug.Log("Logging started");
+    }
+    void StopLogging() {
+        OnFixedUpdate = () => { };
+        flushLog();
+        Debug.Log("Logging stopped");
+    }
 
     
     void PopCurrentSetting()
@@ -336,7 +419,7 @@ public class Experiment : MonoBehaviour
         defaultSetting.SetActive(false);
 
         // some trials left
-        Debug.Log("Active ID: " + currentSetting.id.ToString() + "trials left: " + currentSetting.TrialsLeft.ToString());
+        Debug.Log("Active ID: " + currentSetting.Id.ToString() + "trials left: " + currentSetting.TrialsLeft.ToString());
         if ( currentSetting.TrialsLeft > 1) {
             currentSetting.TrialsLeft--;
             return;
@@ -603,7 +686,7 @@ public class Experiment : MonoBehaviour
         var seenIDs = new List<int>();
         foreach (Setting setting in seenSettings)
         {
-            seenIDs.Add(setting.id);
+            seenIDs.Add(setting.Id);
         }
 
         int candidate_id = 1;
@@ -616,12 +699,17 @@ public class Experiment : MonoBehaviour
     }
 
 
+   
+
+
     // simpler and more ssecure version of ExperimentSetting
     // carrying only the necessary info for the rest of the app lifetime 
     public class Setting
     {
-        public string name { get; private set; }
-        public int id { get; private set; }
+        public string Name { get; private set; }
+        public int Id { get; private set; }
+
+        public int TrialsCount { get; private set; }
         public int TrialsLeft { get; set;}
         public GameObject Arm { get; private set; }
         public GameObject Hand { get; private set; }
@@ -649,9 +737,10 @@ public class Experiment : MonoBehaviour
             GameObject room,
             GameObject table)
         {
-            this.name = name;
-            this.id = id;
+            this.Name = name;
+            this.Id = id;
             this.TrialsLeft = trialCnt;
+            this.TrialsCount = trialCnt;
             this.TextBeforeTrial = textBefore;
             this.TextAfterTrial = textAfter;
             this.Arm = arm;
