@@ -3,8 +3,6 @@
 /obj/Debug
 /Temp
 /Logs
-/Logs
-/Logs
 /.vs
 /.vs/My project/v16
 /Logs
@@ -13,6 +11,8 @@
 UserSettings/Layouts/default-2022.dwlt
 /Assets/*
 !/Assets/Scrpits
+!/Assets/Scenes
 /Assets/Oculus
 /Assets/TextMesh Pro
 /Assets/Yughues Fabric Materials
+.vs/My project/v16/.suo
