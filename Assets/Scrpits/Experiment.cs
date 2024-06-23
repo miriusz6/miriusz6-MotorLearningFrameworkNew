@@ -10,6 +10,8 @@ using UnityEditor;
 public class Experiment : MonoBehaviour
 {
     public Canvas MsgDisplay;
+    public GameObject SurveyCanvas;
+    public Survey ExperimentSurvey;
     
     public DefaultExperimentSetting defaultExperimentSetting;
     public List<ExperimentSetting> experimentSettings;
@@ -61,6 +63,8 @@ public class Experiment : MonoBehaviour
     private string logPath = "";
     private string log = "";
 
+    private bool surveyConducted = false;
+
 
 
 
@@ -73,6 +77,7 @@ public class Experiment : MonoBehaviour
         BeforeTrial,
         Trail,
         AfterTrial,
+        SurveyTaking,
         Comeback,
         Finished
     }
@@ -287,10 +292,18 @@ public class Experiment : MonoBehaviour
             case State.AfterTrial:
                 if (IsPressed(nextButton))
                 {
+                    activeState = State.SurveyTaking;
+                    InitSurveyTaking();
+                }
+                break;
+            case State.SurveyTaking:
+                if (surveyConducted)
+                {
                     InitComeback();
                     activeState = State.Comeback;
                 }
                 break;
+
             case State.Comeback:
                 if (isFinished)
                 {
@@ -346,10 +359,17 @@ public class Experiment : MonoBehaviour
         Debug.Log("AfterTrial Initiated");
     }
 
+    void InitSurveyTaking()
+    {
+        Debug.Log("Initiating SurveyTaking");
+        ExperimentSurvey.Run(delegate { surveyConducted = true; });
+        HideDisplay();
+        
+    }
+
     void InitComeback()
     {
         Debug.Log("Initiating Comeback");
-        HideDisplay();
         ShowEnviroment();
         // switch to default body
         endPoint.SetActive(false);
