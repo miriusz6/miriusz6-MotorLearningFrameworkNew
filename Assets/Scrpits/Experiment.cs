@@ -60,8 +60,14 @@ public class Experiment : MonoBehaviour
     private delegate void FixedUpdateRoutine();
     FixedUpdateRoutine OnFixedUpdate = () => { };
 
+    
+
+    
     private string logPath = "";
     private string log = "";
+
+    private string surveyLogPath = "";
+    private string surveyLog = "";
 
     private bool surveyConducted = false;
 
@@ -94,37 +100,38 @@ public class Experiment : MonoBehaviour
         optimalPath = GameObject.CreatePrimitive(PrimitiveType.Cube);
         string curr_dir = Application.persistentDataPath;
         string log_folder = "ExperimentLogs";
-        string filenameBase = "experiment_log_";
+        string logFileNameBase = "experiment_log_";
+        string surveyLogFileNameBase = "survey_log_";
 
         if (!System.IO.Directory.Exists(curr_dir + "/" + log_folder))
         {
             System.IO.Directory.CreateDirectory(curr_dir + "/" + log_folder);
         }
 
+        string date = System.DateTime.Now.ToString("ddmmyyyy-HHmmss");
 
-        logPath = Application.persistentDataPath + "/" + log_folder + "/" + filenameBase + System.DateTime.Now.ToString("ddmmyyyy-HHmmss") + ".csv";
+        logPath = Application.persistentDataPath + "/" + log_folder + "/" + logFileNameBase + date + ".csv";
+        surveyLogPath= Application.persistentDataPath + "/" + log_folder + "/" + surveyLogFileNameBase + date + ".csv";
         Debug.Log("Log path: " + logPath);
-
-        
-        
-
-        //if ( settings.Length < 1)
-        //{
-        //    Debug.Log("There must be at least 1 valid setting ! Shutting down.");
-        //}
-
 
     }
 
-    void flushLog()
+    private void flushLog()
     {
         System.IO.File.AppendAllText(logPath, log);
         log = "";
         Debug.Log("Log flushed");
     }
 
+    private void flushSurveyLog()
+    {
+        System.IO.File.AppendAllText(surveyLogPath, surveyLog);
+        surveyLog = "";
+        Debug.Log("Survey Log flushed");
+    }
 
-    void logPoint()
+
+    private void logTrialResult()
     {
         string setID = currentSetting.Id.ToString();
         string trialNumb = (currentSetting.TrialsCount - currentSetting.TrialsLeft).ToString();
@@ -140,6 +147,26 @@ public class Experiment : MonoBehaviour
             + "," + z
             + "\n");
     }
+
+
+    private void onSurveyFinished(List<string> answers)
+    {
+        logSurveyResult(answers);
+        flushSurveyLog();
+    }
+
+
+    private void logSurveyResult(List<string> answers)
+    {
+        string setID = currentSetting.Id.ToString();
+
+        for (int i = 0; i < answers.Count; i++)
+        {
+            surveyLog += (setID + "," +  answers[i] + "\n");
+        }
+        surveyConducted = true;
+    }
+
 
 
     private void FixedUpdate()
@@ -248,6 +275,11 @@ public class Experiment : MonoBehaviour
 
     }
 
+    void initSurveyLog()
+    {
+        surveyLog += "SettingID,QuestionID,QuestionType,QuestionText,AnswerID,AnswerText\n";
+    }
+
 
     void trySwitchState()
     {
@@ -257,6 +289,7 @@ public class Experiment : MonoBehaviour
                 if (table_calibrated && IsPressed(nextButton) && IsConeInPosition(startPointPos)) 
                 {
                     initLog();
+                    initSurveyLog();
                     createCustomSettings();
                     activeState = State.Comeback;
                 }
@@ -292,8 +325,18 @@ public class Experiment : MonoBehaviour
             case State.AfterTrial:
                 if (IsPressed(nextButton))
                 {
-                    activeState = State.SurveyTaking;
-                    InitSurveyTaking();
+                    if(currentSetting.TrialsLeft == 1)
+                    {
+                        InitSurveyTaking();
+                        activeState = State.SurveyTaking;
+                    }
+                    else
+                    {
+                        InitComeback();
+                        activeState = State.Comeback;
+
+                    }
+                    
                 }
                 break;
             case State.SurveyTaking:
@@ -334,6 +377,7 @@ public class Experiment : MonoBehaviour
         HideEnviroment();
         Debug.Log("BeforeTrial Initiated");
     }
+    
     void InitTrial()
     {
         Debug.Log("Initiating Trial");
@@ -362,14 +406,16 @@ public class Experiment : MonoBehaviour
     void InitSurveyTaking()
     {
         Debug.Log("Initiating SurveyTaking");
-        ExperimentSurvey.Run(delegate { surveyConducted = true; });
+        ExperimentSurvey.Run(onSurveyFinished);
         HideDisplay();
+        
         
     }
 
     void InitComeback()
     {
         Debug.Log("Initiating Comeback");
+        HideDisplay();
         ShowEnviroment();
         // switch to default body
         endPoint.SetActive(false);
@@ -396,7 +442,7 @@ public class Experiment : MonoBehaviour
    
 
     void StartLogging() {
-        OnFixedUpdate = logPoint;
+        OnFixedUpdate = logTrialResult;
         Debug.Log("Logging started");
     }
     void StopLogging() {

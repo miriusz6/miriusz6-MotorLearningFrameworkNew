@@ -24,6 +24,12 @@ public class QuestionToggle : Question
             //optionToggle.onValueChanged.AddListener(
             //    delegate { onToggleChange(optionToggle);  }
             //);
+            if (QuestionType == QuestionType.SingleChoice)
+            {
+                optionToggle.onValueChanged.AddListener(
+                                       delegate { onToggleChange(optionToggle); }
+                                                      );
+            }
             toggles.Add(optionToggle);
             uiContent.Add(option.transform);
 
@@ -39,14 +45,7 @@ public class QuestionToggle : Question
     {
         //toggle.onValueChanged.AddListener
 
-        toggleOptionTemplate = GameObject.Find("OptionToggleTemplate");
-        toggleOptionTemplate.SetActive(false);
-
-
-        GameObject questionBoxTemplate = GameObject.Find("QuestionTemplate").gameObject;
-        questionBox = GameObject.Instantiate(questionBoxTemplate);
-        questionBox.transform.Find("QuestionText").GetComponent<TMPro.TextMeshProUGUI>().text = questionText;
-        uiContent.Add(questionBox.transform);
+        
     }
 
     // Update is called once per frame
@@ -57,7 +56,16 @@ public class QuestionToggle : Question
 
     private void onToggleChange(Toggle toggeled)
     {
-
+        if (toggeled.isOn)
+        {
+            for (int i = 0; i < toggles.Count; i++)
+            {
+                if (toggles[i] != toggeled)
+                {
+                    toggles[i].isOn = false;
+                }
+            }
+        }
     }
 
 
@@ -98,7 +106,18 @@ public class QuestionToggle : Question
     
     public override void Init(Transform Container)
     {
+        toggleOptionTemplate = GameObject.Find("OptionToggleTemplate");
+        
+
+
+        GameObject questionBoxTemplate = GameObject.Find("QuestionTemplate").gameObject;
+        questionBox = GameObject.Instantiate(questionBoxTemplate);
+        questionBox.transform.Find("QuestionText").GetComponent<TMPro.TextMeshProUGUI>().text = questionText;
+        uiContent.Add(questionBox.transform);
+
+        toggleOptionTemplate.SetActive(false);
         InstantiateOptions();
+        toggleOptionTemplate.SetActive(true);
         for (int i = 0; i < uiContent.Count; i++)
         {
             uiContent[i].SetParent(Container);

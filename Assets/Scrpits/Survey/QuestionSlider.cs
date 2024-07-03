@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class QuestionSlider : Question
 {
+    new public QuestionType QuestionType = QuestionType.SingleChoice;
 
     private Slider slider;
 
@@ -14,46 +15,13 @@ public class QuestionSlider : Question
     private GameObject middleLabel;
     private GameObject endLabel;
     private GameObject questionBox;
+    
 
 
     // Start is called before the first frame update
     void Start()
     {
-        GameObject sliderOptionTemplate = GameObject.Find("OptionSliderTemplate").gameObject;
-        GameObject questionBoxTemplate = GameObject.Find("QuestionTemplate").gameObject;
-        questionBox = GameObject.Instantiate(questionBoxTemplate);
-        questionBox.transform.Find("QuestionText").GetComponent<TMPro.TextMeshProUGUI>().text = questionText;
-
-        sliderOption = GameObject.Instantiate(sliderOptionTemplate);
-        slider = sliderOption.transform.Find("OptionSlider").GetComponent<Slider>();
-        sliderLabels = sliderOption.transform.Find("OptionLabels").gameObject;
-
-        startLabel = sliderLabels.transform.Find("StartLabel").gameObject;
-        middleLabel = sliderLabels.transform.Find("MiddleLabel").gameObject;
-        endLabel = sliderLabels.transform.Find("EndLabel").gameObject;
-
-        slider.maxValue = PossibleAnswers.Count - 1;
-
-        startLabel.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[0];
-
-       
-        for (int i = 1; i < PossibleAnswers.Count-1; i++)
-        {
-            GameObject new_label = GameObject.Instantiate(middleLabel);
-            new_label.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[i];
-            new_label.transform.SetParent(sliderLabels.transform);
-            new_label.transform.localPosition = new Vector3();
-            new_label.transform.localScale = new Vector3(1, 1, 1);
-            new_label.transform.SetAsLastSibling();
-        }
-
-        endLabel.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[PossibleAnswers.Count - 1];
-        endLabel.transform.SetAsLastSibling();
-
-        Destroy(middleLabel);
-
-        sliderOptionTemplate.SetActive(false);
-        Show(false);
+        
     }
     
 
@@ -87,9 +55,47 @@ public class QuestionSlider : Question
 
     public override void Init(Transform Container)
     {
+        
+
+        GameObject sliderOptionTemplate = GameObject.Find("OptionSliderTemplate").gameObject;
+        GameObject questionBoxTemplate = GameObject.Find("QuestionTemplate").gameObject;
+        questionBox = GameObject.Instantiate(questionBoxTemplate);
+        questionBox.transform.Find("QuestionText").GetComponent<TMPro.TextMeshProUGUI>().text = questionText;
+
+        sliderOption = GameObject.Instantiate(sliderOptionTemplate);
+        slider = sliderOption.transform.Find("OptionSlider").GetComponent<Slider>();
+        sliderLabels = sliderOption.transform.Find("OptionLabels").gameObject;
+
+        startLabel = sliderLabels.transform.Find("StartLabel").gameObject;
+        middleLabel = sliderLabels.transform.Find("MiddleLabel").gameObject;
+        endLabel = sliderLabels.transform.Find("EndLabel").gameObject;
+
+        slider.maxValue = PossibleAnswers.Count - 1;
+
+        startLabel.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[0];
+
+
+        for (int i = 1; i < PossibleAnswers.Count - 1; i++)
+        {
+            GameObject new_label = GameObject.Instantiate(middleLabel);
+            new_label.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[i];
+            new_label.transform.SetParent(sliderLabels.transform);
+            new_label.transform.localPosition = new Vector3();
+            new_label.transform.localScale = new Vector3(1, 1, 1);
+            new_label.transform.SetAsLastSibling();
+        }
+
+        endLabel.GetComponent<TMPro.TextMeshProUGUI>().text = PossibleAnswers[PossibleAnswers.Count - 1];
+        endLabel.transform.SetAsLastSibling();
+
+        Destroy(middleLabel);
+
+        //sliderOptionTemplate.SetActive(false);
+        Show(false);
+
         questionBox.transform.SetParent(Container);
         sliderOption.transform.SetParent(Container);
-        
+
     }
 
     public override void Show(bool visible)
