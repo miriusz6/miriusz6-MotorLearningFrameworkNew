@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class QuestionSlider : Question
 {
-    new public QuestionType QuestionType = QuestionType.SingleChoice;
+    //new public QuestionType QuestionType = QuestionType.SingleChoice;
 
     private Slider slider;
 
