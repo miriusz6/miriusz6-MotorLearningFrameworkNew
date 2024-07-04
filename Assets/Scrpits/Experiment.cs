@@ -71,6 +71,8 @@ public class Experiment : MonoBehaviour
 
     private bool surveyConducted = false;
 
+    private bool omitSurvey = false;
+
 
 
 
@@ -113,6 +115,8 @@ public class Experiment : MonoBehaviour
         logPath = Application.persistentDataPath + "/" + log_folder + "/" + logFileNameBase + date + ".csv";
         surveyLogPath= Application.persistentDataPath + "/" + log_folder + "/" + surveyLogFileNameBase + date + ".csv";
         Debug.Log("Log path: " + logPath);
+
+        omitSurvey = ExperimentSurvey == null;
 
     }
 
@@ -325,7 +329,7 @@ public class Experiment : MonoBehaviour
             case State.AfterTrial:
                 if (IsPressed(nextButton))
                 {
-                    if(currentSetting.TrialsLeft == 1)
+                    if(!omitSurvey && currentSetting.TrialsLeft == 1)
                     {
                         InitSurveyTaking();
                         activeState = State.SurveyTaking;
